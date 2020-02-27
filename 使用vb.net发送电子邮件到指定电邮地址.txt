@@ -1,0 +1,8 @@
+可以使用gmail.但是必须是在smtp服务器
+主要设置：阅读
+Gmail邮箱设置IMAP,POP3.doc
+将端口设置为587
+
+
+password :Name + Year
+

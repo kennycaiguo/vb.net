@@ -1,0 +1,1001 @@
+1.模块的使用
+module module1
+ public x as integer '只有用public关键字定义的才是全局变量
+   .
+   .
+   .
+sub sub1()
+do something...
+end sub
+end module
+
+
+
+1a.实用的字符串操作
+
+        Dim strtempt As String
+        strtempt = DateTime.Today.ToShortDateString '只要日期不要时间
+        MsgBox(strtempt)
+        Dim parts() As String
+        parts = strtempt.Split("/") '去除"/"
+        strtempt = String.Join("-", parts) '用"-"连接
+        LabelInvoice.Text = strtempt & "inv#" & invnum
+
+
+1b.VB.NET使文本框只能输入数字
+Private Sub TextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles Textbox1.KeyPress
+If Char.IsDigit(e.KeyChar) Or e.KeyChar = Chr(8) Then
+e.Handled = False
+Else
+e.Handled = True
+End If
+End Sub
+
+其中e.KeyChar是键盘输入的键对应的字符，IsDigit函数可以判断是否为0到9的数字，Chr(8)为退格键，当e.Handled为True时，程序认为该KeyPress事件已经被处理过了，文本框的内容也就不会发生变化了。从以上程序中不难看出，此时文本框只能接受数字和退格键，也就是说这个文本框是用来输入整数的。
+
+如果文本需要输入小数的话，就要能够输入小数点"."，而且小数点只能输入一次，此时可以将上面的函数改为下面的格式：
+
+Private Sub TextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles Textbox1.KeyPress
+If Char.IsDigit(e.KeyChar) or e.KeyChar = Chr(8) or e.KeyChar = "." Then
+If e.KeyChar = "." And InStr(TextBox1.Text, ".") > 0 Then
+e.Handled = True
+Else
+e.Handled = False
+End If
+Else
+e.Handled = True
+End If
+End Sub
+
+其中函数InStr返回指定字符在字符串中的位置，当字符串中不含此字符时，返回一个负数。这时文本框可以用来输入正整数及小数。
+
+如果文本需要输入负数的话，就要能够输入负号"-"，而且只能是文本框输入的第一个字符，此时又可以将上面的函数改为下面的格式：
+
+Private Sub TextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles Textbox1.KeyPress
+If Char.IsDigit(e.KeyChar) Or e.KeyChar = "." Or e.KeyChar = Chr(8) Then
+If e.KeyChar = "." And InStr(TextBox1.Text, ".") > 0 Then
+e.Handled = True
+Else
+e.Handled = False
+End If
+ElseIf e.KeyChar = "-" And TextBox1.Text = "" Then
+e.Handled = False
+Else
+e.Handled = True
+End If
+End Sub
+这时文本框可以用来输入正的或负的整数及小数。
+
+
+当有多个文本框需要做输入限制时，可以在以上代码Handles后面加上多个文本框的KeyPress事件，各事件之间用逗号隔开，例如
+Private Sub TextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles Textbox1.KeyPress,Textbox2.KeyPress,Textbox3.KeyPress
+对于要判断文本框内容的函数，就要把代码进行修改，使其能够同时处理多个文本框，也就是把上面后两段程序中的TextBox1.Text改为CType(sender, TextBox).Text，这样一来就能够对号入座了，比如上面能够输入负号的代码就可以改成：
+Private Sub TextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles
+
+Textbox1.KeyPress,Textbox2.KeyPress,Textbox3.KeyPress
+
+If Char.IsDigit(e.KeyChar) Or e.KeyChar = "." Or e.KeyChar = Chr(8) Then
+If e.KeyChar = "." And InStr(CType(sender, TextBox).Text, ".") > 0 Then
+e.Handled = True
+Else
+e.Handled = False
+End If
+ElseIf e.KeyChar = "-" And CType(sender, TextBox).Text = "" Then
+e.Handled = False
+Else
+e.Handled = True
+End If
+End Sub
+
+1c.vb.net将文本输出到pdf文件，要用到
+Spire.pdf.dll和Spire.license.dll文件
+在工程中添加对他们的引用
+存放在的：D:\software\NET4.0 ClientProfile目录下面
+
+1d.spire.pdf在画中文的时候，如果选用的字体不支持画中文，就会显示乱码。请使用 PdfCjkStandardFont中的SinoTypeSongLight画简体中文。
+CODE: SELECT ALL
+            PdfCjkStandardFont font = new PdfCjkStandardFont(PdfCjkFontFamily.SinoTypeSongLight, 12f);
+            page.Canvas.DrawString("订单日期：", font, new PdfSolidBrush(Color.Black), 10, 10);
+
+
+1e.DataGridView的赋值操作
+
+1f.从DataGridView中查找符合条件的项并修改（也就是合并相同项）
+代码如下：
+
+ Function FoundAndChangeRowData(ByRef rs As ADODB.Recordset) As Boolean
+        IsDataFound = False
+        If rs.State <> 1 Then
+            rs.Open("select * from clientinfo where name=" & "'" & TextBox_Client.Text.Trim & "'", conn, 3, 3)
+        End If
+        Dim i As Integer
+        For i = 0 To DataGridView1.Rows.Count - 1
+            If DataGridView1.Rows(i).Cells("Name").Value = rs.Fields("name").Value Then
+                DataGridView1.Rows(i).Cells("Unit").Value += rs.Fields("unit").Value
+                DataGridView1.Rows(i).Cells("Price").Value += rs.Fields("price").Value
+                If rs.Fields("taxable").Value.ToString = "yes" Then
+                    taxabletotal += rs.Fields("price").Value
+                    TextBox_tax.Text = taxabletotal
+                Else
+                    nontaxabletotal += rs.Fields("price").Value
+                    TextBox_notax.Text = nontaxabletotal
+
+                End If
+                total += rs.Fields("price").Value
+                TextBox_total.Text = total
+                IsDataFound = True
+                TextBox_code.Text = ""
+                TextBox_code.Focus()
+                DataGridView1.Rows(i).Selected = True
+            End If
+
+        Next
+        FoundAndChangeRowData = IsDataFound
+    End Function
+
+ 
+DataGridViewRow Row = new DataGridViewRow(); 
+dataGridView1.RowHeadersWidth = 45;
+
+ 
+ int index = dataGridView1.Rows.Add(Row); 
+dataGridView1.Rows[index].Cells[0].Value = dr[0].ToString(); 
+dataGridView1.Rows[index].Cells[1].Value = dr[1].ToString();
+
+10.将DataGridView指定行的数据赋值给文本框
+ TextBox_Search_Id.Text = DataGridView1.SelectedRows(0).Cells(0).Value.ToString
+ TextBox_Search_name.Text = DataGridView1.SelectedRows(0).Cells(1).Value.ToString
+ TextBox_code.Text = DataGridView1.SelectedRows(0).Cells(1).Value.ToString
+ 
+11. winform中的DataGridView的列宽设置，添加序号
+ 
+找了很多都说DataGridView有一个属性AutoSizeColumnMode，他有很多枚举值：
+1)、AllCells 调整列宽，以适合该列中的所有单元格的内容，包括标题单元格。  
+2)、AllCellsExceptHeader 调整列宽，以适合该列中的所有单元格的内容，不包括标题单元格。  
+3)、ColumnHeader 调整列宽，以适合列标题单元格的内容。  
+4)、DisplayedCells 调整列宽，以适合当前屏幕上显示的行的列中的所有单元格的内容，包括标题单
+元格。  
+5)、DisplayedCellsExceptHeader 调整列宽，以适合当前屏幕上显示的行的列中的所有单元格的内容，
+不包括标题单元格。  
+6)、Fill 调整列宽，使所有列的宽度正好填充控件的显示区域，只需要水平滚动保证列宽在
+DataGridViewColumn.MinimumWidth 属性值以上。相对列宽由相对 DataGridViewColumn.FillWeight
+ 属性值决定。  
+7)、None 列宽不会自动调整。  
+8)、NotSet 列的大小调整行为从 DataGridView.AutoSizeColumnsMode 属性继承。
+
+
+ 最好将DataGridView的AutoResizeColumn属性设置为AllCells以免出错
+
+12 Sql 模糊查找语句
+
+“select * from 数据表 where name like '%名称%'"
+
+
+13.将datagridview的SelectionMode设置为FullRowSelect可以解决index小于零的问题
+最好将ReadOnly属性设置为true
+2.vb.net文件操作
+VB.NET文件操作打开和关闭文件
+1、顺序文件 
+打开顺序文件，我们可以使用Open语句。它的格式如下：
+
+Open pathname For [Input |Output |Append] As [#]filenumber [Len = buffersize]   
+说明： 
+1）参数pathname 表示要打开的文件名，文件名可以包含有驱动器和目录 
+2）Input Output 和Append用于设置顺序文件的打开方式。其中，Input表示从打开的文件中读取数据。以这种方式打开文件时，文件必须存在，否则会产生错误。Output表示向打开的文件中写入数据。以这种方式打开文件时，文件中原有的数据将被覆盖，新的数据将从文件开始写入。如果文件不存在，则创建一个新文件。Append表示向打开的文件中添加数据。以这种方式打开时，文件中原有的数据将被保留，新的数据将从文件为开始添加。如果文件不存在，则创建一个新文件。 
+3）As[#]filenumber 子句用于为打开的文件指定文件号.对文件进行读写操作时,要用文件号表示该文件.文件号是介于1~511之间的整数,既可以是数字,又可以是变量.也可以省略不用. 
+4)当在文件与程序之间拷贝数据时,Len=buffersize子句指定缓冲区的字符数. 
+例如:
+
+Open App.Path + "/test.dat" For Output As 1   
+Open App.Path + "/test.dat" For Output As 1   
+这两句代码在当前应用程序所在目录下创建了一个名为test.dat的文本文件,分配文件号为1.
+
+Open App.Path + "/test.dat" For Input As [#]filenumber  
+这条语句是从文本文件中读取数据.
+
+Open App.Path + "/test.dat" For Append As [#]filenumber  
+这条语句则是像文本文件中添加数据
+
+2、随机文件 
+操作随机文件之前,首先必须定义用于保存数据项的记录类型.该记录是用户自定义数据类型,他们是随机文件中存储数据的基本结构.例如:
+
+Type Student   
+No As Integer   
+Name As String * 20   
+age As Integer   
+End Type   
+Dim Stud As Student ‘定义一个可以存放学生材料的变量  
+随机文件中,所有的数据都将保存到若干个结构为Student类型的记录中, 而从随机文件中读出的数据则可以存放到变量Stud中. 
+之后我们就可以打开并读写文件了.下面是打开随机文件的语法格式:
+
+Open filename For Random as [#]filenumber Len = Reclength  
+说明: 
+1)参数filename 和filenumber 分别表示文件名或文件号. 
+2)关键字Random 表示打开的是随机文件 
+3)Len子句用于设置记录长度,长度由参数Reclength指定.Reclength的值必须大于0,而且必须与定义的记录结构的长度一致.计算记录长度的方法是将记录结构中每个元素的长度相加.例如前面声明的Student的长度应该是2+20+2=24字节. 
+打开一个记录类型为Student 的随机文件的方法是:
+
+Open "c:/Student.txt " For Random As #1 Len = 25  
+
+3.net 文件操作
+/// <summary>
+        /// 写文件
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="content">文件内容</param>
+        /// <param name="encoding">指定文件编码</param>
+        protected void Write_Txt(string fileName, string content, string encoding)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                throw new ArgumentNullException(fileName);
+            }
+            if (string.IsNullOrEmpty(content))
+            {
+                throw new ArgumentNullException(content);
+            }
+            if (string.IsNullOrEmpty(encoding))
+            {
+                throw new ArgumentNullException(encoding);
+            }
+            var code = Encoding.GetEncoding(encoding);
+            var htmlfilename = HttpContext.Current.Server.MapPath("Precious\\" + fileName + ".txt");
+            var str = content;
+            var sw = StreamWriter.Null;
+            try
+            {
+                using (sw = new StreamWriter(htmlfilename, false, code))
+                {
+                    sw.Write(str);
+                    sw.Flush();
+                }
+            }
+            catch (IOException ioex)
+            {
+                throw new IOException(ioex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                sw.Close();
+            }
+        }
+
+        /// <summary>
+        /// 读文件
+        /// </summary>
+        /// <param name="filename">文件路径</param>
+        /// <param name="encoding">文件编码</param>
+        /// <returns></returns>
+        protected string Read_Txt(string filename, string encoding)
+        {
+            if (string.IsNullOrEmpty(filename))
+            {
+                throw new ArgumentNullException(filename);
+            }
+            if (string.IsNullOrEmpty(encoding))
+            {
+                throw new ArgumentNullException(encoding);
+            }
+            var code = Encoding.GetEncoding(encoding);
+            var temp = HttpContext.Current.Server.MapPath("Precious\\" + filename + ".txt");
+            var str = string.Empty;
+            if (!System.IO.File.Exists(temp)) return str;
+            var sr = StreamReader.Null;
+            try
+            {
+                using (sr = new StreamReader(temp, code))
+                {
+                    str = sr.ReadToEnd();
+                }
+            }
+            catch (IOException ioex)
+            {
+                throw new IOException(ioex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                sr.Close();
+            }
+            return str;
+        }
+
+         /// <summary>
+        /// 拷贝文件
+        /// </summary>
+        /// <param name="orignFile">原始文件</param>
+        /// <param name="newFile">新文件路径</param>
+        public static void FileCoppy(string orignFile, string newFile)
+        {
+            if (string.IsNullOrEmpty(orignFile))
+            {
+                throw new ArgumentException(orignFile);
+            }
+            if (string.IsNullOrEmpty(newFile))
+            {
+                throw new ArgumentException(newFile);
+            }
+            System.IO.File.Copy(orignFile, newFile, true);
+        }
+
+        /// <summary>
+        /// 删除文件
+        /// </summary>
+        /// <param name="path">路径</param>
+        public static void FileDel(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException(path);
+            }
+            System.IO.File.Delete(path);
+        }
+
+        /// <summary>
+        /// 移动文件
+        /// </summary>
+        /// <param name="orignFile">原始路径</param>
+        /// <param name="newFile">新路径</param>
+        public static void FileMove(string orignFile, string newFile)
+        {
+            if (string.IsNullOrEmpty(orignFile))
+            {
+                throw new ArgumentException(orignFile);
+            }
+            if (string.IsNullOrEmpty(newFile))
+            {
+                throw new ArgumentException(newFile);
+            }
+            System.IO.File.Move(orignFile, newFile);
+        }
+
+
+
+4.2.目录操作：.net
+/// <summary>
+        /// 在当前目录下创建目录
+        /// </summary>
+        /// <param name="orignFolder">当前目录</param>
+        /// <param name="newFloder">新目录</param>
+        public static void FolderCreate(string orignFolder, string newFloder)
+        {
+            if (string.IsNullOrEmpty(orignFolder))
+            {
+                throw new ArgumentException(orignFolder);
+            }
+            if (string.IsNullOrEmpty(newFloder))
+            {
+                throw new ArgumentException(newFloder);
+            }
+            Directory.SetCurrentDirectory(orignFolder);
+            Directory.CreateDirectory(newFloder);
+        }
+
+        /// <summary>
+        /// 创建文件夹
+        /// </summary>
+        /// <param name="path"></param>
+        public static void FolderCreate(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException(path);
+            }
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }               
+        }
+
+        public static void FileCreate(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException(path);
+            }
+            var createFile = new FileInfo(path);
+            if (createFile.Exists) return;
+            var fs = createFile.Create();
+            fs.Close();
+            fs.Dispose();
+        }
+
+        /// <summary>
+        /// 递归删除文件夹目录及文件
+        /// </summary>
+        /// <param name="dir"></param>  
+        /// <returns></returns>
+        public static void DeleteFolder(string dir)
+        {
+            if (string.IsNullOrEmpty(dir))
+            {
+                throw new ArgumentException(dir);
+            }
+            if (!Directory.Exists(dir)) return;
+            foreach (var d in Directory.GetFileSystemEntries(dir))
+            {
+                if (System.IO.File.Exists(d))
+                {
+                    //直接删除其中的文件 
+                    System.IO.File.Delete(d); 
+                }
+                else
+                {
+                    //递归删除子文件夹 
+                    DeleteFolder(d);
+                }                    
+            }
+            //删除已空文件夹        
+            Directory.Delete(dir, true);          
+        }
+
+        /// <summary>
+        /// 指定文件夹下面的所有内容copy到目标文件夹下面
+        /// </summary>
+        /// <param name="srcPath">原始路径</param>
+        /// <param name="aimPath">目标文件夹</param>
+        public static void CopyDir(string srcPath, string aimPath)
+        {
+            if (string.IsNullOrEmpty(srcPath))
+            {
+                throw new ArgumentNullException(srcPath);
+            }
+            if (string.IsNullOrEmpty(aimPath))
+            {
+                throw new ArgumentNullException(aimPath);
+            }
+            try
+            {
+                if (aimPath[aimPath.Length - 1] != Path.DirectorySeparatorChar)
+                {
+                    aimPath += Path.DirectorySeparatorChar;
+                }
+                if (!Directory.Exists(aimPath))
+                {
+                    Directory.CreateDirectory(aimPath);
+                }
+                var fileList = Directory.GetFileSystemEntries(srcPath);
+                foreach (var file in fileList)
+                {
+                    if (Directory.Exists(file))
+                    {
+                        CopyDir(file, aimPath + Path.GetFileName(file));
+                    }
+                    else
+                    {
+                        System.IO.File.Copy(file, aimPath + Path.GetFileName(file), true);
+                    }
+                }
+            }
+            catch (IOException ioex)
+            {
+                throw new IOException(ioex.Message);
+            }
+            catch (Exception ee)
+            {
+                throw new Exception(ee.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 获取指定文件夹下所有子目录及文件
+        /// </summary>
+        /// <param name="path">详细路径</param>
+        public static string GetFoldAll(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(path);
+            }
+            var str =string.Empty;
+            var thisOne = new DirectoryInfo(path);
+            str = ListTreeShow(thisOne, 0, str);
+            return str;
+
+        }
+
+        /// <summary>
+        /// 获取指定文件夹下所有子目录及文件函数
+        /// </summary>
+        /// <param name="theDir">指定目录</param>
+        /// <param name="nLevel">默认起始值,调用时,一般为0</param>
+        /// <param name="rn">用于迭加的传入值,一般为空</param>
+        /// <returns></returns>
+        public static string ListTreeShow(DirectoryInfo theDir, int nLevel, string rn)
+        {
+            if (theDir == null)
+            {
+                throw new ArgumentNullException("theDir");
+            }
+            //获得目录
+            DirectoryInfo[] subDirectories = theDir.GetDirectories();
+            foreach (DirectoryInfo dirinfo in subDirectories)
+            {
+
+                if (nLevel == 0)
+                {
+                    rn += "├";
+                }
+                else
+                {
+                    var s =string.Empty;
+                    for (int i = 1; i <= nLevel; i++)
+                    {
+                        s += "│&nbsp;";
+                    }
+                    rn += s + "├";
+                }
+                rn += "<b>" + dirinfo.Name + "</b><br />";
+                //目录下的文件
+                var fileInfo = dirinfo.GetFiles();   
+                foreach (FileInfo fInfo in fileInfo)
+                {
+                    if (nLevel == 0)
+                    {
+                        rn += "│&nbsp;├";
+                    }
+                    else
+                    {
+                        var f = string.Empty;
+                        for (int i = 1; i <= nLevel; i++)
+                        {
+                            f += "│&nbsp;";
+                        }
+                        rn += f + "│&nbsp;├";
+                    }
+                    rn += fInfo.Name.ToString() + " <br />";
+                }
+                rn = ListTreeShow(dirinfo, nLevel + 1, rn);
+
+
+            }
+            return rn;
+        }
+
+        /// <summary>
+        /// 获取指定文件夹下所有子目录及文件(下拉框形)
+        /// </summary>
+        /// <param name="path">详细路径</param>
+        ///<param name="dropName">下拉列表名称</param>
+        ///<param name="tplPath">默认选择模板名称</param>
+        public static string GetFoldAll(string path, string dropName, string tplPath)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(path);
+            }
+            if (string.IsNullOrEmpty(tplPath))
+            {
+                throw new ArgumentNullException(tplPath);
+            }
+            var strDrop = "<select name=\"" + dropName + "\" id=\"" + dropName + "\"><option value=\"\">--请选择详细模板--</option>";
+            var str =string.Empty;
+            DirectoryInfo thisOne = new DirectoryInfo(path);
+            str = ListTreeShow(thisOne, 0, str, tplPath);
+            return strDrop + str + "</select>";
+
+        }
+
+        /// <summary>
+        /// 获取指定文件夹下所有子目录及文件函数
+        /// </summary>
+        /// <param name="theDir">指定目录</param>
+        /// <param name="nLevel">默认起始值,调用时,一般为0</param>
+        /// <param name="rn">用于迭加的传入值,一般为空</param>
+        /// <param name="tplPath">默认选择模板名称</param>
+        /// <returns></returns>
+        public static string ListTreeShow(DirectoryInfo theDir, int nLevel, string rn, string tplPath)
+        {
+            if (theDir == null)
+            {
+                throw new ArgumentNullException("theDir");
+            }
+            //获得目录
+            DirectoryInfo[] subDirectories = theDir.GetDirectories();
+            foreach (DirectoryInfo dirinfo in subDirectories)
+            {
+                rn += "<option value=\"" + dirinfo.Name + "\"";
+                if (string.Equals(tplPath, dirinfo.Name, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    rn += " selected ";
+                }
+                rn += ">";
+
+                if (nLevel == 0)
+                {
+                    rn += "┣";
+                }
+                else
+                {
+                    string s = string.Empty;
+                    for (int i = 1; i <= nLevel; i++)
+                    {
+                        s += "│&nbsp;";
+                    }
+                    rn += s + "┣";
+                }
+                rn += "" + dirinfo.Name + "</option>";
+                //目录下的文件
+                FileInfo[] fileInfo = dirinfo.GetFiles();  
+                foreach (FileInfo fInfo in fileInfo)
+                {
+                    rn += "<option value=\"" + dirinfo.Name + "/" + fInfo.Name + "\"";
+                    if (string.Equals(tplPath, fInfo.Name, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        rn += " selected ";
+                    }
+                    rn += ">";
+
+                    if (nLevel == 0)
+                    {
+                        rn += "│&nbsp;├";
+                    }
+                    else
+                    {
+                        string f = string.Empty;
+                        for (int i = 1; i <= nLevel; i++)
+                        {
+                            f += "│&nbsp;";
+                        }
+                        rn += f + "│&nbsp;├";
+                    }
+                    rn += fInfo.Name + "</option>";
+                }
+                rn = ListTreeShow(dirinfo, nLevel + 1, rn, tplPath);
+            }
+            return rn;
+        }
+
+        /// <summary>
+        /// 获取文件夹大小
+        /// </summary>
+        /// <param name="dirPath">文件夹路径</param>
+        /// <returns></returns>
+        public static long GetDirectoryLength(string dirPath)
+        {
+            if (string.IsNullOrEmpty(dirPath))
+            {
+                throw new ArgumentNullException(dirPath);
+            }
+            if (!Directory.Exists(dirPath))
+            {
+                return 0;
+            }              
+            long len = 0;
+            DirectoryInfo di = new DirectoryInfo(dirPath);
+            foreach (FileInfo fi in di.GetFiles())
+            {
+                len += fi.Length;
+            }
+            DirectoryInfo[] dis = di.GetDirectories();
+            if (dis.Length > 0)
+            {
+                for (int i = 0; i < dis.Length; i++)
+                {
+                    len += GetDirectoryLength(dis[i].FullName);
+                }
+            }
+            return len;
+        }
+
+        /// <summary>
+        /// 获取指定文件详细属性
+        /// </summary>
+        /// <param name="filePath">文件详细路径</param>
+        /// <returns></returns>
+        public static string GetFileAttibe(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                throw new ArgumentNullException(filePath);
+            }
+            var str = string.Empty;
+            FileInfo objFi = new FileInfo(filePath);
+            str += "详细路径:" + objFi.FullName + "<br>文件名称:" + objFi.Name + "<br>文件长度:" + objFi.Length + "字节<br>创建时间" + objFi.CreationTime.ToString() + "<br>最后访问时间:" + objFi.LastAccessTime.ToString() + "<br>修改时间:" + objFi.LastWriteTime.ToString() + "<br>所在目录:" + objFi.DirectoryName + "<br>扩展名:" + objFi.Extension;
+            return str;
+        }
+
+
+5..net文件共享操作实例：
+/// <summary>
+    /// 共享文档操作
+    /// </summary>
+    public class FileSharingOperationHelper
+    {
+        public static bool ConnectState(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(path);
+            }
+            return ConnectState(path, "", "");
+        }
+
+        /// <summary>
+        /// 连接远程共享文件夹
+        /// </summary>
+        /// <param name="path">远程共享文件夹的路径</param>
+        /// <param name="userName">用户名</param>
+        /// <param name="passWord">密码</param>
+        /// <returns></returns>
+        public static bool ConnectState(string path, string userName, string passWord)
+        {
+            var proc = new Process();
+            try
+            {
+                proc.StartInfo.FileName = "cmd.exe";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardInput = true;
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.StartInfo.RedirectStandardError = true;
+                proc.StartInfo.CreateNoWindow = true;
+                proc.Start();
+                var dosLine = "net use " + path + " " + passWord + " /user:" + userName;
+                proc.StandardInput.WriteLine(dosLine);
+                proc.StandardInput.WriteLine("exit");
+                while (!proc.HasExited)
+                {
+                    proc.WaitForExit(1000);
+                }
+                var errormsg = proc.StandardError.ReadToEnd();
+                proc.StandardError.Close();
+                if (!string.IsNullOrEmpty(errormsg))
+                {
+                    throw new Exception(errormsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                proc.Close();
+                proc.Dispose();
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 向远程文件夹保存本地内容，或者从远程文件夹下载文件到本地
+        /// </summary>
+        /// <param name="src">要保存的文件的路径，如果保存文件到共享文件夹，这个路径就是本地文件路径如：@"D:\1.avi"</param>
+        /// <param name="dst">保存文件的路径，不含名称及扩展名</param>
+        /// <param name="fileName">保存文件的名称以及扩展名</param>
+        public static void Transport(string src, string dst, string fileName)
+        {
+            if (string.IsNullOrEmpty(src))
+            {
+                throw new ArgumentNullException(src);
+            }
+            if (string.IsNullOrEmpty(dst))
+            {
+                throw new ArgumentNullException(dst);
+            }
+            if (string.IsNullOrEmpty(fileName))
+            {
+                throw new ArgumentNullException(fileName);
+            }
+            FileStream inFileStream = null;
+            FileStream outFileStream = null;
+            try
+            {
+                inFileStream = new FileStream(src, FileMode.Open);
+                if (!Directory.Exists(dst))
+                {
+                    Directory.CreateDirectory(dst);
+                }
+                dst = dst + fileName;
+                outFileStream = new FileStream(dst, FileMode.OpenOrCreate);
+                var buf = new byte[inFileStream.Length];
+                int byteCount;
+                while ((byteCount = inFileStream.Read(buf, 0, buf.Length)) > 0)
+                {
+                    outFileStream.Write(buf, 0, byteCount);
+                }
+            }
+            catch (IOException ioex)
+            {
+                throw new IOException(ioex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            finally
+            {
+                if (inFileStream != null)
+                {
+                    inFileStream.Flush();
+                    inFileStream.Close();
+                }
+                if (outFileStream != null)
+                {
+                    outFileStream.Flush();
+                    outFileStream.Close();
+                }
+            }
+        }
+    }
+
+
+6.文件彻底删除实例：
+ 在.NET中提供了两种文件彻底的方法：
+
+          (1).调用系统API来完成这样的“粉碎”操作。
+
+          (2).在删除文件之前先删除文件的所有内容，然后在执行删除操作，被称为“假粉碎”。
+       （此方法可以被人恢复文件，但是恢复的数据只是文件中的0）
+
+/// <summary>
+    /// 粉碎文件操作
+    /// </summary>
+    public class KillFileHelper
+    {
+        /// <summary>
+        /// 强力粉碎文件，文件如果被打开，很难粉碎
+        /// </summary>
+        /// <param name="filename">文件全路径</param>
+        /// <param name="deleteCount">删除次数</param>
+        /// <param name="randomData">随机数据填充文件，默认true</param>
+        /// <param name="blanks">空白填充文件，默认false</param>
+        /// <returns>true：粉碎成功，false：粉碎失败</returns>
+        public static bool KillFile(string filename, int deleteCount, bool randomData = true, bool blanks = false)
+        {
+            if (string.IsNullOrEmpty(filename))
+            {
+                throw new ArgumentNullException(filename);
+            }
+            const int bufferLength = 1024000;
+            var ret = true;
+            try
+            {
+                using (var stream = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+                {
+                    var f = new FileInfo(filename);
+                    var count = f.Length;
+                    long offset = 0;
+                    var rowDataBuffer = new byte[bufferLength];
+                    while (count >= 0)
+                    {
+                        var iNumOfDataRead = stream.Read(rowDataBuffer, 0, bufferLength);
+                        if (iNumOfDataRead == 0)
+                        {
+                            break;
+                        }
+                        if (randomData)
+                        {
+                            var randombyte = new Random();
+                            randombyte.NextBytes(rowDataBuffer);
+                        }
+                        else if (blanks)
+                        {
+                            for (var i = 0; i < iNumOfDataRead; i++)
+                                rowDataBuffer[i] = 0;
+                        }
+                        else
+                        {
+                            for (var i = 0; i < iNumOfDataRead; i++)
+                                rowDataBuffer[i] = Convert.ToByte(Convert.ToChar(deleteCount));
+                        }
+                        // 写新内容到文件。
+                        for (var i = 0; i < deleteCount; i++)
+                        {
+                            stream.Seek(offset, SeekOrigin.Begin);
+                            stream.Write(rowDataBuffer, 0, iNumOfDataRead);
+                        }
+                        offset += iNumOfDataRead;
+                        count -= iNumOfDataRead;
+                    }
+                }
+                //每一个文件名字符代替随机数从0到9。
+                var newName = "";
+                do
+                {
+                    var random = new Random();
+                    var cleanName = Path.GetFileName(filename);
+                    var dirName = Path.GetDirectoryName(filename);
+                    var iMoreRandomLetters = random.Next(9);
+                    // 为了更安全，不要只使用原文件名的大小，添加一些随机字母。
+                    for (var i = 0; i < cleanName.Length + iMoreRandomLetters; i++)
+                    {
+                        newName += random.Next(9).ToString();
+                    }
+                    newName = dirName + "\\" + newName;
+                } while (File.Exists(newName));
+                // 重命名文件的新的随机的名字。
+                File.Move(filename, newName);
+                File.Delete(newName);
+            }
+            catch
+            {
+                //可能其他原因删除失败了，使用我们自己的方法强制删除
+                var matchPattern = @"(?<=\s+pid:\s+)\b(\d+)\b(?=\s+)";
+                try
+                {
+                    //要检查被那个进程占用的文件
+                    var fileName = filename;
+                    var tool = new Process { StartInfo = { FileName = "handle.exe", Arguments = fileName + " /accepteula", UseShellExecute = false, RedirectStandardOutput = true } };
+                    tool.Start();
+                    tool.WaitForExit();
+                    var outputTool = tool.StandardOutput.ReadToEnd();
+                    foreach (Match match in Regex.Matches(outputTool, matchPattern))
+                    {
+                        //结束掉所有正在使用这个文件的程序
+                        Process.GetProcessById(int.Parse(match.Value)).Kill();
+                    }
+                    File.Delete(fileName);
+                }
+                catch
+                {
+                    ret = false;
+                }
+            }
+            return ret;
+        }
+    }
+
+7.DotNet文件加密解密操作：
+File和FileInfo类对文件加密进行了进一步的封装，提供了Encrypt和Decrypt方法用来对文件加密和解密。这两种方法要求文件系统必须为NFTS系统，对操作系统版本也要求必须是NT以上版本，使用该方法加密的文件，必须由同一用户才能进行解密。
+
+ (1).Encrypt():文件加密操作。
+[SecuritySafeCritical]
+public static void Encrypt(string path)
+{
+    if (path == null)
+    {
+        throw new ArgumentNullException("path");
+    }
+    string fullPathInternal = Path.GetFullPathInternal(path);
+    new FileIOPermission(FileIOPermissionAccess.Write | FileIOPermissionAccess.Read, new string[] { fullPathInternal }, false, false).Demand();
+    if (!Win32Native.EncryptFile(fullPathInternal))
+    {
+        int errorCode = Marshal.GetLastWin32Error();
+        if (errorCode == 5)
+        {
+            DriveInfo info = new DriveInfo(Path.GetPathRoot(fullPathInternal));
+            if (!string.Equals("NTFS", info.DriveFormat))
+            {
+                throw new NotSupportedException(Environment.GetResourceString("NotSupported_EncryptionNeedsNTFS"));
+            }
+        }
+        __Error.WinIOError(errorCode, fullPathInternal);
+    }
+}
+
+
+(2).Decrypt():文件解密操作。
+
+[SecuritySafeCritical]
+public static void Decrypt(string path)
+{
+    if (path == null)
+    {
+        throw new ArgumentNullException("path");
+    }
+    string fullPathInternal = Path.GetFullPathInternal(path);
+    new FileIOPermission(FileIOPermissionAccess.Write | FileIOPermissionAccess.Read, new string[] { fullPathInternal }, false, false).Demand();
+    if (!Win32Native.DecryptFile(fullPathInternal, 0))
+    {
+        int errorCode = Marshal.GetLastWin32Error();
+        if (errorCode == 5)
+        {
+            DriveInfo info = new DriveInfo(Path.GetPathRoot(fullPathInternal));
+            if (!string.Equals("NTFS", info.DriveFormat))
+            {
+                throw new NotSupportedException(Environment.GetResourceString("NotSupported_EncryptionNeedsNTFS"));
+            }
+        }
+        __Error.WinIOError(errorCode, fullPathInternal);
+    }
+}
+
+
+

@@ -1,0 +1,28 @@
+vb.net – 计算字符串中特定字符的出现次数
+时间  2017-08-21
+标签 string vb.net 栏目 Visual Basic
+原文   http://stackoverflow.com/questions/5193893/count-specific-character-occurrences-in-string
+
+ 
+计算字符串中特定字符出现次数的最简单方法是什么？
+即我需要写一个函数countTheCharacters()
+
+str="the little red hen"
+count=countTheCharacters(str,"e") 'count should equal 4
+count=countTheCharacters(str,"t") 'count should equal 3
+最直接的是简单地循环字符串中的字符：
+Public Function CountCharacter(ByVal value As String, ByVal ch As Char) As Integer
+  Dim cnt As Integer = 0
+  For Each c As Char In value
+    If c = ch Then cnt += 1
+  Next
+  Return cnt
+End Function
+用法：
+
+count = CountCharacter(str, "e"C)
+另一种几乎同样有效并且给出较短代码的方法是使用LINQ扩展方法：
+
+Public Function CountCharacter(ByVal value As String, ByVal ch As Char) As Integer
+  Return value.Count(Function(c As Char) c = ch)
+End Function

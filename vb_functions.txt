@@ -1,0 +1,55 @@
+ VB.NET 字符串搜索、比较、筛选与替换函数
+分类： MIS 2009-07-22 13:30 13972人阅读 评论(0) 收藏 举报
+vb.netstringintegerincludefilterobject
+1）字符串比较比较函数StrComp ()
+      语法：StrComp (str1 As String , str2 As String [,ampare As Microsoft.VisualBasic.CompareMethod]) As Integer
+
+      说明：返回表示str1和str2两个字符串参数比较结果，若str1小于str2，则返回-1；若str1等于str2，返回0；若str1大于str2，若返回1。选择性参数Compare的值有Binary（区分大小写）和Text（不区分大小写）两种，前者为默认值。
+
+ 
+
+（2）筛选字符串数组函数Filter ()
+
+      语法：Filter (Source() As {Object | String},match As String [,include As Boolean [,compare As Microsoft.VisualBasic.CompareMethod ]] As String ()
+
+      说明：从一维字符串数组Source ()中筛选包含match字符串的子数组。若选择性参数include为True（默认），表示从字符串数组Source ()中筛选包含match字符串的子数组；若选择性参数include为false，表示字符串数组source ()中筛选不包含match字符串的子数组；选择性参数compare的值有Binary（区分大小定）和Text（不区分大小字）两种，前者为默认值，决定了字符串的比较方式。例如：Source ()={“abc”,”abdfe”,”ghdf”,”pqs”}，那么filter (Source ,”ab”,True,CompareMethod.Binary)会返回{“abc”,”abdfe”}。
+
+ 
+
+（3）替换字符串函数RePlace ()
+
+     语法：RePlace (str As String , find As String , replacement As String [,start As Integer [,count As Integer [,compare As Microsoft.VisualBasic.CompareMethod ]]] As String
+
+     说明：将str字符串内的find子字符串替换为replacement子字符串。选择性参数start表示从str字符串的第start个字符开始查找find子字符串，默认为1；选择性count表示做几次替换，默认为-1，表示执行所有可能的替换；选择性参数compare的值有Binary（区分大小定）和Text（不区分大小字）两种，前者为默认值，决定了字符串的比较方式。如：str=”shopping list”那么Relace (str,”o”,”i”)会返回“Shipping list”。
+
+ 
+
+（4）查找字符串函数InStr ()
+
+     语法：InStr (start As Integer , str1 As String , str2 As String [,compare As Microsoft.VisualBasic.CompareMethod]) As String
+
+     说明：返回str2字符串在str1字符串中第一次出现的位置。若str1为空字符串（“”）或str2没有出现在str1或start大于str2的长度，就返回0；若str2为空字符串(“”)，就返回start；选择性参数compare的值有Binary（区分大小定）和Text（不区分大小字）两种，前者为默认值，决定了字符串的比较方式。如：Instr (3,”Hell Wold”,0”)返回5。
+
+ 
+
+（5）查找字符串函数Instrrev ()
+
+     语法：InStrRev (str1 As String,Str2 As Interger [,start As Integer [,compare As Microsoft.VisualBasic.compareMethod ]]) As Integer
+
+     说明：InStrRev ()函数的用途和InsStr ()函数相似，但改从字符串的右边开始检查str2字符串在str1字符中第一次出现的位置不同。如：InStrRev (“Hello Word”,”0”)返回3。
+
+ 
+
+（6）将字符串数组组成单一字符串函数Join ()
+
+     语法：Jon (Source () As {Object | String} [,delimiter As String]) As String
+
+     说明：将字符串数组Source ()内的每个字符串组成单一字符串返回，选择性参数delimter表示每个字符之间的分隔符，默认为空字符串（“”）。如：Source ()={“Janifer”,”Peter”,”Jean”,”Robort”},那么Join (Source)会返回”Janifer Perter Rober”。
+
+ 
+
+（7）将字符串分解成子字符数组函数Split ()
+
+     语法：Split (str As String [,delimiter As String [,limit As Integer [,compare As Microsoft.VisualBasic.CompareMethod ]]]) As String
+
+     说明：将组成字符串str的每一个字符串放进字符串数组内返回。选择性参数delimiter表示每个子字符串之间的分隔符，默认值为空字符串（“”）；参数limit是要返回的子字符串数目，默认为-1，表示返回所有子字符串；参数compare的值有Binary（区分大小定）和Text（不区分大小字）两种，前者为默认值，决定了字符串的比较方式。如：str=” I am Happy.”,那么Split (str)会返回字符串数组{“I”,”am”,”Happy”}。

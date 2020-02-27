@@ -1,0 +1,307 @@
+Imports System.Data
+Imports System.IO
+Imports ADODB(点击“项目”--“添加引用”--“COM”---“Microsoft Activx Data Object 2.1library”)
+
+
+Public Class Form1
+    Dim strPath As String
+    Dim constr As String
+    Dim conn As ADODB.Connection
+    Dim rs As ADODB.Recordset
+    Dim pos As Integer
+    
+    Private Sub btnConnect_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnConnect.Click
+        If strPath = "" Then
+            MsgBox("Please choose database！")
+            Return
+        End If
+        constr = "PROVIDER=MICROSOFT.JET.OLEDB.4.0;DATA SOURCE=" & strPath
+        conn = New ADODB.Connection
+        conn.Open(constr)
+        If conn.State = 1 Then
+            Me.Label2.Text = "Connected to DataBase!"
+        Else
+            MsgBox("Failed to Connect to DataBase!")
+        End If
+        Me.btnConnect.Enabled = False
+        btnReadDb.Enabled = True
+        
+        ' btnSave.Enabled = True
+        btnNew.Enabled = True
+        btnSearch.Enabled = True
+        'btnEdit.Enabled = True
+        'btnSaveChanged.Enabled = True
+    End Sub
+
+    Private Sub btnReadDb_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReadDb.Click
+        rs = New ADODB.Recordset
+        rs.Open("Select * from price", conn, 3, 3)
+         
+        TextBox_code.Text = rs.Fields("code").Value.ToString
+        TextBox_name.Text = rs.Fields("name").Value.ToString
+        TextBox_price.Text = rs.Fields("price").Value.ToString
+        TextBox_stock.Text = rs.Fields("stock").Value.ToString
+
+        pos = 1
+        btnPrev.Enabled = True
+        btnNext.Enabled = True
+        btnShowAll.Enabled = True
+        Button_Search.Enabled = True
+    End Sub
+
+    Private Sub btnBrowse_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnBrowse.Click
+        Dim ofd As OpenFileDialog
+
+        ofd = New OpenFileDialog
+
+        If DialogResult.OK = ofd.ShowDialog Then
+            strPath = ofd.FileName
+            ' MsgBox(strPath)
+        Else
+            MsgBox("No dataBase Selected！")
+        End If
+
+        Me.btnConnect.Enabled = True
+
+
+    End Sub
+
+    Private Sub btnPrev_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnPrev.Click
+        If conn.State = 1 Then
+            If (pos > 1) Then
+
+                rs.MovePrevious()
+                TextBox_code.Text = rs.Fields("code").Value.ToString
+                TextBox_name.Text = rs.Fields("name").Value.ToString
+                TextBox_price.Text = rs.Fields("price").Value.ToString
+                TextBox_stock.Text = rs.Fields("stock").Value.ToString
+                pos = pos - 1
+            Else
+                MsgBox("Top of records!")
+            End If
+        Else
+            MsgBox("连接数据库失败")
+        End If
+    End Sub
+
+    Private Sub btnNext_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnNext.Click
+        If conn.State = 1 Then
+            If (pos < rs.RecordCount) Then
+
+                rs.MoveNext()
+                TextBox_code.Text = rs.Fields("code").Value.ToString
+                TextBox_name.Text = rs.Fields("name").Value.ToString
+                TextBox_price.Text = rs.Fields("price").Value.ToString
+                TextBox_stock.Text = rs.Fields("stock").Value.ToString
+                pos = pos + 1
+            Else
+                MsgBox("Bottom of records!")
+            End If
+        Else
+            MsgBox("连接数据库失败")
+        End If
+    End Sub
+
+    
+    Private Sub btnSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSave.Click
+        If Me.TextBox_code_new.Text.Trim <> "" And TextBox_name_new.Text.Trim <> "" And TextBox_price_new.Text.Trim <> "" Then
+            'arrFld = Array("code","name","unit","price","stock","dateEntered");
+            If conn.State = 1 And rs.State = 1 Then
+                rs.AddNew()
+                rs.Fields.Item(1).Value = TextBox_code_new.Text
+                rs.Fields.Item(2).Value = TextBox_name_new.Text
+                rs.Fields.Item(3).Value = 1
+                rs.Fields.Item(4).Value = TextBox_price_new.Text
+                rs.Fields.Item(5).Value = TextBox_stock_new.Text
+                rs.Fields.Item(6).Value = DateTime.Today
+                rs.Update()
+
+                MsgBox("New Item Added successfully!")
+                TextBox_code_new.Text = ""
+                TextBox_name_new.Text = ""
+
+                TextBox_price_new.Text = ""
+                TextBox_stock_new.Text = ""
+                TextBox_code_new.Enabled = False
+                TextBox_name_new.Enabled = False
+                TextBox_price_new.Enabled = False
+                TextBox_stock_new.Enabled = False
+                ShowAll()
+
+                btnNew.Enabled = True
+                btnSave.Enabled = False
+            End If
+        End If
+    End Sub
+
+
+
+    Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        btnConnect.Enabled = False
+        btnSave.Enabled = False
+        btnNew.Enabled = False
+        btnSearch.Enabled = False
+        btnEdit.Enabled = False
+        btnSaveChanged.Enabled = False
+        btnReadDb.Enabled = False
+        btnPrev.Enabled = False
+        btnNext.Enabled = False
+        btnShowAll.Enabled = False
+        Button_Search.Enabled = False
+        TextBox_code_new.Enabled = False
+        TextBox_name_new.Enabled = False
+        TextBox_price_new.Enabled = False
+        TextBox_stock_new.Enabled = False
+    End Sub
+
+    Private Sub btnNew_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnNew.Click
+        TextBox_code_new.Enabled = True
+        TextBox_name_new.Enabled = True
+        TextBox_price_new.Enabled = True
+        TextBox_stock_new.Enabled = True
+        TextBox_code_new.Text = ""
+        TextBox_name_new.Text = ""
+        TextBox_price_new.Text = ""
+        TextBox_code_new.Focus()
+        btnSave.Enabled = True
+        btnNew.Enabled = False
+    End Sub
+
+    Private Sub btnSearch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSearch.Click
+        TextBox_code_edit.Enabled = False
+        TextBox_name_edit.Enabled = False
+        TextBox_price_edit.Enabled = False
+        TextBox_stock_edit.Enabled = False
+        If conn.State = 1 Then
+            rs.Close()
+            If TextBox_code_search.Text.Trim <> "" Then
+
+                Dim searchStr As String
+                searchStr = "select * from price where code =" & "'" & TextBox_code_search.Text & "'"
+                'MsgBox(searchStr)
+
+                'rs = New ADODB.Recordset
+                rs.Open(searchStr, conn, 3, 3)
+
+                If rs.RecordCount > 0 Then
+
+                    'MsgBox(rs.RecordCount)
+                    TextBox_code_edit.Text = rs.Fields("code").Value.ToString
+                    TextBox_name_edit.Text = rs.Fields("name").Value.ToString
+                    TextBox_price_edit.Text = rs.Fields("price").Value.ToString
+                    TextBox_stock_edit.Text = rs.Fields("stock").Value.ToString
+                Else
+                    MsgBox("Item Not Found!")
+                    TextBox_code_search.Text = ""
+                    TextBox_code_edit.Text = ""
+                    TextBox_name_edit.Text = ""
+                    TextBox_price_edit.Text = ""
+                    TextBox_stock_edit.Text = ""
+                End If
+            End If
+        End If
+        '
+
+
+        btnEdit.Enabled = True
+        btnSaveChanged.Enabled = True
+
+    End Sub
+
+    Private Sub btnSaveChanged_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSaveChanged.Click
+        If conn.State = 1 And rs.RecordCount > 0 Then
+
+            rs.Fields.Item(1).Value = TextBox_code_edit.Text
+            rs.Fields.Item(2).Value = TextBox_name_edit.Text
+            rs.Fields.Item(3).Value = 1
+            rs.Fields.Item(4).Value = TextBox_price_edit.Text
+            rs.Fields.Item(5).Value = TextBox_stock_edit.Text
+            rs.Fields.Item(6).Value = DateTime.Today
+            rs.Update()
+
+            MsgBox("Item Updated successfully!")
+            btnSave.Enabled = False
+            btnEdit.Enabled = True
+        End If
+    End Sub
+
+    Private Sub btnEdit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnEdit.Click
+        TextBox_code_edit.Enabled = True
+        TextBox_name_edit.Enabled = True
+        TextBox_price_edit.Enabled = True
+        TextBox_stock_edit.Enabled = True
+        btnSaveChanged.Enabled = True
+    End Sub
+
+    
+    Private Sub Button_Search_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button_Search.Click
+        If TextBox_del_search.Text <> "" Then
+            Dim searchStr As String
+            Dim rsDelSearch As New ADODB.Recordset
+            searchStr = "select * from price where code =" & "'" & TextBox_del_search.Text & "'"
+            'MsgBox(searchStr)
+
+            'rs = New ADODB.Recordset
+            rsDelSearch.Open(searchStr, conn, 3, 3)
+
+            If rsDelSearch.RecordCount > 0 Then
+                Dim da As New System.Data.OleDb.OleDbDataAdapter
+                Dim ds As New DataSet
+                da.Fill(ds, rsDelSearch, "price")
+                DataGridView1.DataSource = ds.Tables(0)
+                DataGridView1.Refresh()
+            Else
+                MsgBox("item Not found!")
+            End If
+
+        Else
+            MsgBox("Please enter code to search")
+            TextBox_del_search.Focus()
+        End If
+
+    End Sub
+
+    Private Sub btnShowAll_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnShowAll.Click
+        ShowAll()
+
+    End Sub
+
+    Private Sub btnDelete_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDelete.Click
+        If TextBox_del.Text.Trim <> "" Then
+            Dim delStr As String
+            Dim ret As Integer
+            Dim myButtons As Integer
+            Dim rsDel As New ADODB.Recordset
+            delStr = "delete from price where code=" & "'" & TextBox_del.Text & "'"
+            myButtons = vbYesNo + vbQuestion + vbDefaultButton2
+            ret = MsgBox("Delete item?", myButtons, "Delete confirm!")
+            'MsgBox(ret)
+            If ret = 6 Then
+                rsDel.Open(delStr, conn, 3, 3)
+                MsgBox("This item has been deleted!")
+ 
+                ShowAll()
+
+
+            End If
+
+        Else
+            MsgBox("Enter Code to Delete!")
+            TextBox_del.Focus()
+        End If
+    End Sub
+    Private Sub ShowAll()
+        Dim searchStr As String
+        Dim rsShow As New ADODB.Recordset
+        searchStr = "select * from price"
+        rsShow.Open(searchStr, conn, 3, 3)
+        If rsShow.RecordCount > 0 Then
+            Dim da As New System.Data.OleDb.OleDbDataAdapter
+            Dim ds As New DataSet
+            da.Fill(ds, rsShow, "price")
+            DataGridView1.DataSource = ds.Tables(0)
+            DataGridView1.Refresh()
+
+        End If
+    End Sub
+End Class
