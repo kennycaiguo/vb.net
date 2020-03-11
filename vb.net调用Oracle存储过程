@@ -1,0 +1,52 @@
+存储过程的实例:
+PROCEDURE TEST_C(temp out varchar2,a IN varchar2, b in varchar2)
+IS
+BEGIN
+  temp:=a || b;  
+END;
+调用方法1:
+说明:要在程序开头加入Imports System.Data.OleDb
+
+        Dim dbConn As New OleDbConnection
+        Dim dbComm As OleDbCommand
+
+        dbConn.ConnectionString = "Provider=MSDAORA.1;User ID=xxx;Password=xxx;Data Source=xxx;"
+        dbConn.Open()
+        dbComm = dbConn.CreateCommand
+         
+        dbComm.Parameters.Add("temp", OleDbType.VarChar, 30).Direction = ParameterDirection.Output
+        dbComm.Parameters.Add("a", OleDbType.VarChar, 30).Direction = ParameterDirection.Input
+        dbComm.Parameters("a").Value = "test "
+        dbComm.Parameters.Add("b", OleDbType.VarChar, 30).Direction = ParameterDirection.Input
+        dbComm.Parameters("b").Value = "OK"
+
+        dbComm.CommandText = "{CALL TEST_C(?,?,?)}" '这里就是使用"？"来代替参数
+        dbComm.CommandType = CommandType.Text
+        dbComm.ExecuteNonQuery()
+        dbConn.Close()
+
+        MessageBox.Show(dbComm.Parameters("temp").Value)
+
+调用方法2:
+说明:要在程序开头加入Imports System.Data.OracleClient
+
+        Dim oraConn As New OracleConnection
+        Dim oraComm As New OracleCommand
+
+        oraConn.ConnectionString = "Data Source=xxx;User Id=xxx;Password=xxx"
+        oraComm.Connection = oraConn
+
+        oraComm.Parameters.Add("temp", OracleType.VarChar, 10).Direction = ParameterDirection.Output
+        oraComm.Parameters.Add("a", OracleType.VarChar, 10).Direction = ParameterDirection.Input
+        oraComm.Parameters("a").Value = "test "
+        oraComm.Parameters.Add("b", OracleType.VarChar, 10).Direction = ParameterDirection.Input
+        oraComm.Parameters("b").Value = "OK"
+
+        oraConn.Open()
+        oraComm.CommandText = "TEST_C"
+        oraComm.CommandType = CommandType.StoredProcedure
+        oraComm.ExecuteNonQuery()
+        oraConn.Close()
+
+        MessageBox.Show(oraComm.Parameters("temp").Value)
+
